@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
+    'anymail',
     'fragebogen',
     'betreuer_portal',
 ]
@@ -127,3 +129,36 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 LOGIN_URL = "/portal/auth/login/"
 LOGIN_REDIRECT_URL = "/portal/dashboard/"
 LOGOUT_REDIRECT_URL = "/portal/auth/login/"
+
+# Storage: Local media files in development, S3 in production
+if DEBUG:
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": os.getenv("INFOMANIAK_S3_ACCESS_KEY"),
+                "secret_key": os.getenv("INFOMANIAK_S3_SECRET_KEY"),
+                "bucket_name": os.getenv("INFOMANIAK_S3_BUCKET"),
+                "endpoint_url": os.getenv("INFOMANIAK_S3_ENDPOINT"),
+                "querystring_auth": True,
+                "querystring_expire": 86400,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+# Email: Print to console in development, Anymail in production
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    ANYMAIL = {"RESEND_API_KEY": os.getenv("RESEND_API_KEY")}
+
+# Webhook target
+TEAMS_WEBHOOK_URL = os.getenv("TEAMS_WEBHOOK_URL", "")

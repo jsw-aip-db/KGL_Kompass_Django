@@ -40,9 +40,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'storages',
     'anymail',
+    
+    # Allauth Core & Microsoft Provider
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
+
+    # Custom apps
     'fragebogen',
     'betreuer_portal',
+
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -88,6 +101,37 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Authentication URLs
+LOGIN_URL = "/portal/auth/login/"
+LOGIN_REDIRECT_URL = "/portal/dashboard/"
+LOGOUT_REDIRECT_URL = "/portal/auth/login/"
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
+
+# Microsoft OIDC Provider Configuration
+SOCIALACCOUNT_PROVIDERS = {
+    'microsoft': {
+        'APPS': [
+            {
+                'client_id': os.getenv('AZURE_CLIENT_ID'),
+                'secret': os.getenv('AZURE_CLIENT_SECRET'),
+                'settings': {
+                    'tenant': os.getenv('AZURE_TENANT_ID'),
+                }
+            }
+        ],
+        'SCOPE': ['User.Read'],
+    }
+}
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

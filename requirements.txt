@@ -11,6 +11,7 @@ cycler==0.12.1
 Django==6.1
 django-anymail==15.2
 django-storages==1.14.6
+django-allauth==65.19.2
 et_xmlfile==2.0.0
 fonttools==4.63.0
 idna==3.18
@@ -35,6 +36,7 @@ sqlparse==0.5.5
 tinycss2==1.5.1
 tinyhtml5==2.1.0
 urllib3==2.7.0
+uv==0.12.5
 weasyprint==69.0
 webencodings==0.5.1
 xlsxwriter==3.2.9

@@ -272,36 +272,56 @@ def generate_motivation_chart(categories_list):
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def process_and_notify_pdf(fall, request=None):
-    # 1. Render PDF binary with WeasyPrint
+    # 1. Fetch evaluation data and answer instances
     categories_list = build_evaluation_data(fall)
+    
+    selbst_einladung = fall.selbsteinschaetzung()
+    fremd_einladung = fall.fremdeinschaetzung()
+    
+    selbst_antwort = getattr(selbst_einladung, 'antwort', None) if selbst_einladung else None
+    fremd_antwort = getattr(fremd_einladung, 'antwort', None) if fremd_einladung else None
+
+    # 2. Render PDF binary with WeasyPrint
     html = render_to_string("auswertung_pdf.html", {
         "fall": fall,
         "categories_list": categories_list,
         "radar_chart": generate_radar_chart(categories_list),
         "motivation_chart": generate_motivation_chart(categories_list),
+        "selbsteinschaetzung": selbst_antwort,
+        "fremdeinschaetzung": fremd_antwort,
     })
     pdf_bytes = HTML(string=html).write_pdf()
 
-    # 2. Save via default_storage (Saves to media/ folder in dev, S3 in prod)
+    # 3. Clean up existing file to prevent filename suffix duplication (_sTkl5hi)
     file_path = f"auswertungen/fall_{fall.id}_auswertung.pdf"
+    if default_storage.exists(file_path):
+        default_storage.delete(file_path)
+
+    # 4. Save file cleanly
     saved_path = default_storage.save(file_path, ContentFile(pdf_bytes))
 
-    # 3. Build access link
+    # 5. Build access link
     pdf_url = default_storage.url(saved_path)
     if settings.DEBUG and request:
         pdf_url = request.build_absolute_uri(pdf_url)
 
-    # 4. Email dispatch (Prints to terminal when DEBUG=True)
+    # 6. Email dispatch using html_message to prevent Quoted-Printable '=' link breaks
     fremd = fall.fremdeinschaetzung()
     if fremd and fremd.bezugsperson:
+        html_body = f"""
+        <p>Hallo,</p>
+        <p>die Auswertung für <strong>{fall.jugendliche_person}</strong> ist fertiggestellt.</p>
+        <p><a href="{pdf_url}">Hier klicken, um das PDF abzurufen</a></p>
+        """
         send_mail(
             subject=f"Auswertung verfügbar: {fall.jugendliche_person}",
             message=f"Die Auswertung ist fertig. Hier abrufen: {pdf_url}",
+            html_message=html_body,
             from_email="noreply@domain.local",
             recipient_list=[fremd.bezugsperson.email],
         )
 
-    # 5. Send Webhook
+    # 7. Send Webhook
     if settings.TEAMS_WEBHOOK_URL:
         payload = {
             "text": f"Auswertung fertiggestellt für **{fall.jugendliche_person}**.\n\n[PDF Downloaden]({pdf_url})"

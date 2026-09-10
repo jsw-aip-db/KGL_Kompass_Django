@@ -1,4 +1,5 @@
 {% extends "betreuer_portal/base.html" %}
+{% load socialaccount %}
 
 {% block title %}Anmeldung - KGL Betreuer Portal{% endblock %}
 
@@ -13,9 +14,29 @@
             </div>
         {% endif %}
 
+        <!-- Microsoft SSO Button mit next-Parameter -->
+        <a href="{% provider_login_url 'microsoft' next=request.GET.next %}" class="btn-microsoft">
+            <svg class="ms-logo" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 21 21">
+                <path fill="#f25022" d="M1 1h9v9H1z"/>
+                <path fill="#00a4ef" d="M1 11h9v9H1z"/>
+                <path fill="#7fba00" d="M11 1h9v9H11z"/>
+                <path fill="#ffb900" d="M11 11h9v9H11z"/>
+            </svg>
+            <span>Mit Microsoft anmelden</span>
+        </a>
+
+        <div class="login-divider">
+            <span>oder mit Passwort</span>
+        </div>
+
         <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             
+            
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+
             <div class="form-group">
                 <label for="id_username">Benutzername</label>
                 <input type="text" name="username" autofocus required id="id_username" placeholder="Benutzername eingeben">

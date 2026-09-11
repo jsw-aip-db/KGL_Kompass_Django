@@ -24,7 +24,7 @@ Befolge diese Schritte, um das Projekt lokal auf deinem Rechner einzurichten:
 Bash
 
 ```
-git clone https://github.com/ypbautista/KGL_Django
+git clone https://github.com/jsw-aip-db/KGL_Kompass_Django
 cd KGL_Django
 ```
 

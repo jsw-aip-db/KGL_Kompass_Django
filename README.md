@@ -144,8 +144,8 @@ python manage.py createsuperuser
 Bash
 
 ```
-python manage.py runserver
+python manage.py runserver localhost:8000
 ```
 
-Die Seite ist nun unter [http://127.0.0.1:8000/admin] (http://127.0.0.1:8000/admin) oder [http://127.0.0.1:8000/portal/dashboard] (http://127.0.0.1:8000/portal/dashboard)  erreichbar.
+Die Seite ist nun unter [http://localhost:8000/admin] (http://localhost:8000/admin) oder [http://localhost:8000/portal/dashboard] (http://localhost:8000/portal/dashboard)  erreichbar.
 
